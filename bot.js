@@ -23,14 +23,20 @@
 
 var Discord = require('discord.js');
 var logger = require('winston');
+var faced = require('faced');
+var jimp = require('jimp');
+
 var auth = require('./auth.json');
+
 var argumentsUtils = require('./utils/arguments');
+var downloadUtils = require('./utils/download');
 var makeUtils = require('./utils/make.js');
 
 var helpNote = "**Bots command**\n" + 
     "\t- help: Send you help commands\n" +
     "\t- repeat: I will repeat what you said and delete the message you command me\n" +
-    "\t- ping: Ping me fuck off";
+    "\t- ping: Ping me fuck off\n" +
+    "\t- sansify + url: Sans the image";
 
 logger.add(new logger.transports.Console ({
     colorize: true
@@ -79,6 +85,73 @@ bot.on('message', message => {
                         () => {
                             message.author.send(helpNote);
                         });
+
+                break;
+
+            case 'sansify': 
+                message.react('498342645781757952');
+                cmd = lexer.next();
+
+                if (cmd == null) {
+                    if (message.attachments.size > 0) {
+                        cmd = { string: message.attachments.first().url, end: 0 };
+                    } else {
+                        message.channel.send(makeUtils.MakePing(message.author.id) + 
+                            ' Send me empty link, i cant work with that');
+
+                        break;
+                    }
+                } 
+
+                downloadUtils.Download(cmd.string, "temp.png", () => {
+                    var faceDetector = new faced();
+
+                    faceDetector.detect('temp.png', function (faces, image, file) {
+                        if (!faces || faces.length == 0) {
+                            message.react('498416716863242251');
+                            message.channel.send('No face detected to Sansify.');
+                            return;
+                        } 
+
+                        logger.info("Totals face: " + faces.length);
+
+                        faces.forEach(face => {
+                            var leftEye = face.getEyeLeft();
+
+                            if (leftEye == null) {
+                                leftEye = face.getEyeRight();
+                            }
+
+                            if (leftEye != null) {
+                                logger.info('Found: ' +
+                                    leftEye.getX() + ' ' + leftEye.getY());
+
+                                jimp.read('temp.png').then(image => {
+                                    jimp.read('./data/sanseye.png').then(sanseye => {
+                                        sanseye.resize(leftEye.getWidth(), leftEye.getHeight(), () => {
+                                            image.composite(sanseye, leftEye.getX(), leftEye.getY(),
+                                                jimp.BLEND_SOURCE_OVER, function() {
+                                                message.react('498416716863242251');
+
+                                                image.write('temp2.png', () => {
+                                                    message.channel.send('<:sansz:498416716863242251>', {
+                                                        files: [
+                                                            "temp2.png"
+                                                        ]
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            } else {
+                                message.react('498416716863242251');
+                                message.channel.send('Cant find the eyes!!!!!');
+                            }
+                        });
+                    });
+                });
+            
 
                 break;
             

@@ -1,0 +1,14 @@
+openexr
+libopenexr22
+libopencv-dev
+libcairo2-dev
+libcairo-gobject2
+libpng12-0
+libusb-dev
+ffmpeg
+libilmbase12
+liblapack-dev
+libatlas-base-dev
+g++-7
+libgfortran-8-dev
+
