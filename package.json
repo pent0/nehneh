@@ -1,0 +1,12 @@
+{
+  "name": "nehneh",
+  "version": "0.0.1",
+  "description": "Nea Nea",
+  "main": "bot.js",
+  "author": "pent0",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "jquery": "^3.3.1",
+    "winston": "^3.1.0"
+  }
+}
